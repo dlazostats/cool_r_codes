@@ -1,0 +1,7 @@
+library(dplyr)
+lm1<-lm(mpg~disp+hp+drat,data=mtcars)
+summary(lm1)
+dt1<-mtcars %>% select(mpg, disp,hp,drat)
+dtm<-sapply(dt1,function(x) x-mean(x)) %>% as.data.frame()
+lm2<-lm(mpg~-1+disp+hp+drat,data=dtm)
+summary(lm2)
