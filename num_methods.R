@@ -1,8 +1,10 @@
 # Numerical Methods
 #-------------------
 library(rootSolve)
+library(pracma)
 
 # a) Bisection method
+#=====================
 bisec_mthd<-function(a,b,tol,func){
   results <- data.frame(iteration = integer(),a = numeric(),
                         b = numeric(),m = numeric(),f_m = numeric())
@@ -46,3 +48,34 @@ bisec_mthd(-4,-3,0.0001,func)
 bisec_mthd(0,1,0.0001,func)
 bisec_mthd(2.1,3,0.0001,func)
 uniroot.all(func, c(-5, 5))
+bisect(func, 0, 1, tol = 1e-8)
+
+# b) Secant Method
+#=====================
+secant_mthd<-function(x0,x1,tol,func,Nmax=100){
+  for( i in 1:Nmax){
+    f_x0<-func(x0)
+    f_x1<-func(x1)
+    if(abs(f_x1-f_x0)<.Machine$double.eps){
+      stop("Denominator too small; division by near-zero.")
+    }
+    x2<-x1-f_x1*(x1-x0)/(f_x1 - f_x0)
+    if(abs(x2-x1)<tol){
+      return(list(root=x2,iterations=i,converged=TRUE))
+    }
+    x0<-x1
+    x1<-x2
+  }
+  return(list(root=x2,iterations=i,converged=FALSE))
+}  
+
+func = function(x){ (x/2)^2-sin(x) }
+secant_mthd(1.5,2,0.0001,func)
+  
+
+
+
+
+
+
+
