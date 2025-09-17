@@ -36,8 +36,9 @@ y<-dta_lk$lntriceps
 ## fit models
 fit.poly <- lm(y ~ poly(x)) #polynomial spline
 fit.bs <- lm(y ~ bs(x) ) # bspline
-fit.ns <- lm(y ~ ns(x) ) #natural spline
-fit.sp <- smooth.spline(y ~ x)
+fit.ns <- lm(y ~ ns(x) ) # natural spline
+fit.sp <- smooth.spline(y ~ x) #cubic smoothing
+
 ## add fit lines to the plot
 lines(x, predict(fit.poly, data.frame(x=x)), col=1, lwd=2)
 lines(x, predict(fit.bs, data.frame(x=x)), col=2, lwd=2)
