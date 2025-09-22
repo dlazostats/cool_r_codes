@@ -1,4 +1,5 @@
 library(lattice)
+library(dplyr)
 
 #example 1
 h<-function(x) x^3
@@ -88,13 +89,65 @@ y<-function(x) p_2nd(x)/dnorm(x)
 mean(y(x))
 var(y(x))
 
+# Third example: from maria risso
+#---------------------------------
+g<-function(x) {exp(-x)/(1+(x^2))*(x > 0)*(x < 1)}
+x<-seq(0,1,0.001)
+y<-g(x)
+plot(x,y,type="l")
+lines(x,f1(x),col="red")
 
+# r function
+integrate(g,0,1)
 
+# compare different importance functions
+n<-10000
+theta.hat <- se <- numeric(5)
 
+# basic MC integration
+x<-runif(n)
+y<-g(x)
+theta.hat[1]<-mean(y)
+se[1]<-sd(y)
 
+# importance sampling 
+# exp
+x<-rexp(n,1)
+f1<-function(x) exp(-x)
+yimp<-g(x)/f1(x)
+theta.hat[2]<-mean(yimp)
+se[2]<-sd(yimp)
 
+#cauchy
+x <- rcauchy(n)
+i <- c(which(x > 1), which(x < 0))
+x[i] <- 2
+f2<-function(x) dcauchy(x)
+yimp<-g(x)/f2(x)
+theta.hat[3]<-mean(yimp)
+se[3]<-sd(yimp)
 
+# inverse transform method
+u<-runif(n)
+x<- -log(1-u*(1-exp(-1)))
+yimp<-g(x)/(exp(-x)/(1-exp(-1)))
+theta.hat[4]<-mean(yimp)
+se[4]<-sd(yimp)
 
+u<-runif(n)
+x<- tan(pi*u/4)
+yimp<-g(x)/(4/((1+x^2)*pi))
+theta.hat[5]<-mean(yimp)
+se[5]<-sd(yimp)
 
+rbind(theta.hat, se/sqrt(n)) %>% as.data.frame() %>% 
+  rename("MC basico"="V1","Exp"="V2","Cauchy"="V3","InvTran1"="V4","InvTran2"="V5") ->res_comp
+rownames(res_comp)<-c("Integral","SE")
+res_comp
 
+plot(x,y,type="l",ylim=c(0,2))
+lines(x,f1(x),col="red")
+lines(x,dunif(x),col="blue")
+lines(x,dcauchy(x),col="green")
+lines(x,exp(-x)/(1-exp(-1)),col="gold")
 
