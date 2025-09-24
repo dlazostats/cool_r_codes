@@ -131,7 +131,7 @@ oneSE <- function(x, metric, maximize) {
   }
 }
 
-ctrl <- trainControl(method = "cv",
+ctrl <- trainControl(method = "cv", 
                      number = 10,
                      selectionFunction = oneSE) 
 model <- train(x = x, 
