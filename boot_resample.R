@@ -1,3 +1,4 @@
+library(dplyr)
 library(rsample)
 library(purrr)
 library(tidyr)
