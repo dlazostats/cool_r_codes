@@ -4,6 +4,7 @@ library(quantregForest)
 library(dplyr)
 library(MLmetrics)
 library(summarytools)
+library(tidymodels)
 library(caret)
 
 # set working directory
@@ -37,8 +38,8 @@ for (i in seq_along(outer_folds)) {
   # --- inner loop: 3-fold CV for hyperparameter tuning ---
   inner_ctrl <- trainControl(
     method  = "cv",
-    number  = 5,
-    verboseIter = TRUE,
+    number  = 3,
+    #verboseIter = TRUE,
     selectionFunction = "oneSE"
   )
   tune_grid <- expand.grid(
@@ -56,15 +57,89 @@ for (i in seq_along(outer_folds)) {
                        importance = "permutation")
   
   # --- evaluate on outer test fold ---
-  preds <- predict(best_model, outer_test)
+  preds <- predict(best_model, outer_test,OOB = TRUE)
   outer_scores[i] <- RMSE(preds,outer_test$Fluencia)
   
-  cat(sprintf("Outer fold %d | best C=%.1f sigma=%.2f | acc=%.3f\n",
-              i,
-              best_model$bestTune$C,
-              best_model$bestTune$sigma,
-              outer_scores[i]))
-  
+  print(paste0("Outer fold ", i, 
+               " | best mtrt = ",best_model$bestTune$mtry,
+               " | best splitrule = ", best_model$bestTune$splitrule,
+               " | best min.node.size = ", best_model$bestTune$min.node.size,
+              " | RMSE = ",round(outer_scores[i],2)))
 }
+cat(sprintf("\nNested CV accuracy: %.3f ± %.3f\n",
+            mean(outer_scores),
+            sd(outer_scores)))
+
+final_ctrl <- trainControl(
+  method            = "cv",
+  number            = 3,
+  selectionFunction = "best"
+)
+Final_model  <- train(Fluencia ~ .,
+                      data      = db0_sqmple,
+                      method    = "ranger",
+                      trControl = final_ctrl,
+                      tuneGrid  = tune_grid,
+                      metric    = "RMSE",      
+                      num.trees = 500,
+                      importance = "permutation")
+Final_model$finalModel
+Final_model$bestTune
+densityplot(Final_model)
+
+# Now using tidymodels
+#---------------------
+nested_rs <- nested_cv(
+  db0_sqmple,
+  outside = vfold_cv(v = 5),
+  inside  = vfold_cv(v = 3)
+)
+nested_rs
+
+
+
+
+
+
+set.seed(123)  # for reproducibility
+
+# Example data
+df <- data.frame(x = mtcars$mpg)
+
+# Choose 30% of rows randomly
+idx <- sample(1:nrow(df), size = 0.3 * nrow(df))
+
+# Replace those values with 0
+df$x[idx] <- 0
+
+df
+mean(df$x)
+mean(df$x[df$x>0])
+median(df$x)
+median(df$x[df$x>0])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
