@@ -110,5 +110,20 @@ describe_posterior(bb$V1,
                    ci_method = "HDI",
                    rope_range = c(-0.1*sdf, 0.1*sdf))
 
+#--------------------------------------------------------------------------------------------------------------------
+# Run both and compare directly
+dif <- scores$estimate_5 - scores$estimate_12
 
+# Classical
+ci_classical <- quantile(
+  replicate(10000, mean(sample(dif, replace = TRUE))),
+  c(0.025, 0.975)
+)
 
+# Bayesian
+bb  <- bayesboot(dif, mean, R = 10000)
+ci_bayesian <- quantile(bb$V1, c(0.025, 0.975))
+
+cat("Classical 95% CI:", round(ci_classical, 4), "\n")
+cat("Bayesian  95% CI:", round(ci_bayesian,  4), "\n")
+cat("P(diff < 0 | data):", round(mean(bb$V1 < 0), 3), "\n")
