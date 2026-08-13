@@ -15,7 +15,7 @@ setwd("D:/OneDrive - CORPORACIÓN ACEROS AREQUIPA SA/Escritorio/pract ml")
 
 # generate data
 set.seed(3212)
-n<-800
+n<-1200
 alpha<-0.05
 z_lo <- qnorm(alpha / 2)          # negative
 z_hi <- qnorm(1 - alpha / 2)      # positive
